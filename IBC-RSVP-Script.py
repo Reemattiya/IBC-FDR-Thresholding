@@ -82,39 +82,3 @@ if np.any(pos_rejected):
           "Max =", round(pos_threshold_max, 4))
 else:
     print("No positive voxels survive FDR q < 0.05")
-
-##################################################################
-
-# ---------- NEGATIVE SIDE: Jabberwocky > Sentence ----------
-
-# Step 3b: Keep only negative Z-values
-# Negative Z-values represent regions more active during
-# Jabberwocky than meaningful sentences (Jabberwocky > Sentence)
-neg_z = z_scores[z_scores < 0]
-
-# Step 4b: Convert negative Z-values to one-tailed p-values
-# np.abs() is used so that norm.sf() can handle the negative values symmetrically
-# A Z of -3 is just as extreme as a Z of +3, only in the opposite direction
-neg_p = norm.sf(np.abs(neg_z))
-print("Min negative p-value:", neg_p.min())
-print("Max negative p-value:", neg_p.max())
-
-# Step 5b: Apply FDR correction at q < 0.05 to negative voxels
-# We correct the negative side independently from the positive side
-neg_rejected, neg_p_corrected = fdrcorrection(neg_p, alpha=0.05)
-print("Number of negative voxels surviving FDR:", neg_rejected.sum())
-
-# Step 6b: Find the Z-threshold for the negative direction
-if np.any(neg_rejected):
-    # np.max() of negative values gives the one closest to zero
-    # = weakest effect that still survived (e.g. -2.1)
-    neg_threshold_max = np.max(neg_z[neg_rejected])
-    # np.min() of negative values gives the one furthest from zero
-    # = strongest effect in the surviving voxels (e.g. -8.3)
-    neg_threshold_min = np.min(neg_z[neg_rejected])
-    print("\nNegative direction: Jabberwocky > Sentence")
-    print("FDR q < 0.05 Z-threshold =", round(neg_threshold_max, 4))
-    print("Use in MRIcroGL: Min =", round(neg_threshold_min, 4),
-          "Max =", round(neg_threshold_max, 4))
-else:
-    print("No negative voxels survive FDR q < 0.05")
